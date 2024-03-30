@@ -35,28 +35,58 @@ export default function Dashboard() {
 
   return (
     <>
-      {page === 'home' && (
-      <>
-      home
-      </>
-      )}
-      {page === 'explore' && (
-      <>
-      explore
-      </>
-      )}
-      {page === 'collection' && (
-      <>
-      collection
-      </>
-      )}
-      {page === 'profile' && (
-      <>
-      profile
-      </>
-      )}
+      <div className="bg-gradient-to-b from-[#111] to-[#111B2B] w-screen h-screen">
+        <img src="Logo.svg" alt="LyricLens logo as the background" className="opacity-25 w-[280px] h-[280px] absolute top-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{ left: '50%', position: 'absolute' }} />
+        {page === 'home' && (
+        <>
+          {/* Header - Search bar and settings */}
+          <div className="flex justify-around items-center p-4">
+            {/* Search bar */}
+            <label className="input input-bordered flex items-center gap-2 rounded-full">
+              <input type="text" className="grow" placeholder="Search" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70"><path fillRule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clipRule="evenodd" /></svg>
+            </label>
 
-      {/* Bottom Navbar */}
+            {/* Settings */}
+            <img src="Settings.svg" alt="Settings button" className="btn btn-ghost w-[56px] h-[56px]" onClick={()=>document.getElementById('settingsModal').showModal()} />
+          </div>
+          <dialog id="settingsModal" className="modal">
+            <div className="modal-box">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-lg">Settings</h3>
+                <form method="dialog">
+                  <button className="btn btn-ghost">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
+                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                  </svg>
+                  </button>
+                </form>
+              </div>
+              <div className="py-4">
+                <p onClick={function() { localStorage.removeItem('email'); localStorage.removeItem('token'); location.reload(); }} className="text-red-400">Log out</p>
+              </div>
+            </div>
+          </dialog>
+        </>
+        )}
+        {page === 'explore' && (
+        <>
+        explore
+        </>
+        )}
+        {page === 'collection' && (
+        <>
+        collection
+        </>
+        )}
+        {page === 'profile' && (
+        <>
+        profile
+        </>
+        )}
+      </div>
+
+      {/* Bottom navbar */}
       <div className="flex justify-between items-center px-4 fixed bottom-0 w-screen h-[70px] bg-[#111] border-t border-[#6C757D]">
 
         <div onClick={function() {window.location.search = `?page=home`}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
