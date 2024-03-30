@@ -21,7 +21,8 @@ export default function Guard() {
       .then(() => {
         setAuth(true);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.log(err);
         setAuth(false);
         localStorage.removeItem('email');
         localStorage.removeItem('token');
