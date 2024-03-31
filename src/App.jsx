@@ -14,7 +14,7 @@ export default function App() {
         <Routes>
           <Route path="/" Component={Landing} />
           <Route path="/authentication" Component={Authentication} />
-          <Route path="/dashboard" Component={Dashboard} />
+            <Route path="/dashboard" Component={Dashboard} />
         </Routes>
       </Router>
     </>

@@ -21,7 +21,7 @@ export default function Dashboard() {
   // Get user's photo
   const [photo, setPhoto] = useState(null);
   useEffect(() => {
-    api.get(`/users/${localStorage.getItem('email')}`, {
+    api.get(`/users/${localStorage.getItem('userId')}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
       }
@@ -96,14 +96,12 @@ export default function Dashboard() {
 
             </div>
 
-              {/* Search results */}
-              <div className="h-[75vh] overflow-y-scroll">
-                {searchResults.map((val, i) => {
-                  return (
-                    <Music val={val} key={i} />
-                  )
-                })}
-              </div>
+            {/* Search results */}
+            <div className="h-[75vh] overflow-y-scroll">
+              {searchResults.map((val, i) => (
+                <Music key={i} val={val} />
+              ))}
+            </div>
 
             {/* Settings dialog */}
             <dialog id="settingsModal" className="modal">

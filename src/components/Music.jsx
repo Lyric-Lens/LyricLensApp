@@ -1,37 +1,39 @@
 import { useState } from "react";
+import { useMusicPlayer } from "./MusicPlayerContext";
 
-export default function Music(val, i) {
-  const [iframeLoading, setIframeLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  console.log(val);
+export default function Music(val) {
+ const [iframeLoading, setIframeLoading] = useState(true);
+ const { playTrack, currentTrack } = useMusicPlayer(); // Use the context hook
 
-  return (
+ const handlePlayPause = () => {
+    if (currentTrack === val.val.youtubeId) {
+      // If the current track is playing, pause it
+      document.getElementById(`youtube-player-${val.val.youtubeId}`).contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      playTrack(null); // Update the context to indicate no track is playing
+    } else {
+      // If a different track is playing, stop it
+      if (currentTrack) {
+        document.getElementById(`youtube-player-${currentTrack}`).contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+      }
+      // Start playing the new track
+      playTrack(val.val.youtubeId);
+    }
+ };
+
+ return (
     <>
-      <div className={`flex justify-between items-center ${iframeLoading ? '' : ''}`}>
-
-          <div className="flex items-center">
-
-            <div style={{backgroundImage: `url(${val.val.thumbnailUrl})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`} onClick={() => {
-                if (isPlaying) {
-                  document.getElementById(`youtube-player-${i}`).contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                  setIsPlaying(false);
-                } else {
-                  document.getElementById(`youtube-player-${i}`).contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                  setIsPlaying(true);
-                }
-              }}>
-              <img src={`${isPlaying ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="w-[24px] h-[24px] rounded-lg" />
-            </div>
-
-            <div className="flex flex-col">
-              <p className="font-bold my-1">{val.val.title}</p>
-              <p className="text-xs opacity-50 my-1">{val.val.artists[0].name}</p>
-            </div>
-
+      <div className={`flex justify-between items-center ${iframeLoading ? 'hidden' : ''}`}>
+        <div className="flex items-center">
+          <div style={{backgroundImage: `url(${val.val.thumbnailUrl})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`} onClick={handlePlayPause}>
+            <img src={`${currentTrack === val.val.youtubeId ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="w-[24px] h-[24px] rounded-lg" />
           </div>
-
+          <div className="flex flex-col">
+            <p className="font-bold my-1">{val.val.title}</p>
+            <p className="text-xs opacity-50 my-1">{val.val.artists[0].name}</p>
+          </div>
+        </div>
         <iframe
-          id={`youtube-player-${i}`}
+          id={`youtube-player-${val.val.youtubeId}`}
           className="hidden"
           width="560"
           height="315"
@@ -44,7 +46,16 @@ export default function Music(val, i) {
           onLoad={() => setIframeLoading(false)}
         />
       </div>
+      <div className={`m-4 flex justify-between items-center ${iframeLoading ? '' : 'hidden'}`}>
+        <div className="flex items-center">
+          <div className="skeleton w-24 h-24 me-2"></div>
+          <div className="flex flex-col">
+            <div className="skeleton w-48 h-4 my-2"></div>
+            <div className="skeleton w-24 h-4 my-2"></div>
+          </div>
+        </div>
+      </div>
       <hr className="w-[80vw] ms-4" />
     </>
-  )
+ );
 }
