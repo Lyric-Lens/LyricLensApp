@@ -9,8 +9,11 @@ export const useMusicPlayer = () => useContext(MusicPlayerContext);
 export const MusicPlayerProvider = ({ children }) => {
  const [currentTrack, setCurrentTrack] = useState(null);
 
- const playTrack = (trackId) => {
+ const playTrack = (trackId, title, author, thumbnail) => {
     localStorage.setItem('currentTrack', trackId);
+    localStorage.setItem('currentTrackTitle', title);
+    localStorage.setItem('currentTrackAuthor', author);
+    localStorage.setItem('currentTrackThumbnail', thumbnail);
     if (currentTrack) {
       stopTrack(currentTrack);
     }

@@ -47,6 +47,7 @@ export default function Dashboard() {
       })
       .then((res) => {
         setSearchResults(res.data.results);
+        setSearch('');
       })
       .catch((err) => {
         console.log(err);
@@ -176,6 +177,23 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Current track indicator */}
+      <div className={`flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
+        <div className="flex items-center">
+          <div style={{backgroundImage: `url(${localStorage.getItem('currentTrackThumbnail')})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`}></div>
+          <div className="flex flex-col">
+            <p className="font-bold my-1">{localStorage.getItem('currentTrackTitle')}</p>
+            <p className="text-xs opacity-50 my-1">{localStorage.getItem('currentTrackAuthor')}</p>
+          </div>
+        </div>
+        <div className="flex items-center me-8">
+          <img src="Previous.svg" alt="Previous button" className="mx-1 w-[16px] h-[16px]" />
+          <img src={`${localStorage.getItem('currentTrack') ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-1 w-[32px] h-[32px] rounded-lg" />
+          <img src="Next.svg" alt="Next button" className="mx-1 w-[16px] h-[16px]" />
+        </div>
+      </div>
+
+      {/* Music player */}
       <iframe
         id='music-player'
         className="hidden"

@@ -15,12 +15,13 @@ export default function Music(val) {
         document.getElementById(`music-player`).contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
       }
       // Start playing the new track
-      playTrack(val.val.youtubeId);
+      playTrack(val.val.youtubeId, val.val.title, val.val.artists[0].name, val.val.thumbnailUrl);
     }
  };
 
  return (
     <>
+      {/* Music display in list */}
       <div className={`flex justify-between items-center`}>
         <div className="flex items-center">
           <div style={{backgroundImage: `url(${val.val.thumbnailUrl})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`} onClick={handlePlayPause}>
@@ -32,6 +33,7 @@ export default function Music(val) {
           </div>
         </div>
       </div>
+
       {/* <div className={`m-4 flex justify-between items-center`}>
         <div className="flex items-center">
           <div className="skeleton w-24 h-24 me-2"></div>
