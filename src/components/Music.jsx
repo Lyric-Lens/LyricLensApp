@@ -1,19 +1,18 @@
-import { useState } from "react";
 import { useMusicPlayer } from "./MusicPlayerContext";
 
 export default function Music(val) {
- const [iframeLoading, setIframeLoading] = useState(true);
+//  const [iframeLoading, setIframeLoading] = useState(true);
  const { playTrack, currentTrack } = useMusicPlayer(); // Use the context hook
 
  const handlePlayPause = () => {
     if (currentTrack === val.val.youtubeId) {
       // If the current track is playing, pause it
-      document.getElementById(`youtube-player-${val.val.youtubeId}`).contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      document.getElementById(`music-player`).contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
       playTrack(null); // Update the context to indicate no track is playing
     } else {
       // If a different track is playing, stop it
       if (currentTrack) {
-        document.getElementById(`youtube-player-${currentTrack}`).contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+        document.getElementById(`music-player`).contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
       }
       // Start playing the new track
       playTrack(val.val.youtubeId);
@@ -22,7 +21,7 @@ export default function Music(val) {
 
  return (
     <>
-      <div className={`flex justify-between items-center ${iframeLoading ? 'hidden' : ''}`}>
+      <div className={`flex justify-between items-center`}>
         <div className="flex items-center">
           <div style={{backgroundImage: `url(${val.val.thumbnailUrl})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`} onClick={handlePlayPause}>
             <img src={`${currentTrack === val.val.youtubeId ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="w-[24px] h-[24px] rounded-lg" />
@@ -32,21 +31,8 @@ export default function Music(val) {
             <p className="text-xs opacity-50 my-1">{val.val.artists[0].name}</p>
           </div>
         </div>
-        <iframe
-          id={`youtube-player-${val.val.youtubeId}`}
-          className="hidden"
-          width="560"
-          height="315"
-          src={`https://www.youtube.com/embed/${val.val.youtubeId}?enablejsapi=1`}
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-          onLoad={() => setIframeLoading(false)}
-        />
       </div>
-      <div className={`m-4 flex justify-between items-center ${iframeLoading ? '' : 'hidden'}`}>
+      {/* <div className={`m-4 flex justify-between items-center`}>
         <div className="flex items-center">
           <div className="skeleton w-24 h-24 me-2"></div>
           <div className="flex flex-col">
@@ -54,7 +40,7 @@ export default function Music(val) {
             <div className="skeleton w-24 h-4 my-2"></div>
           </div>
         </div>
-      </div>
+      </div> */}
       <hr className="w-[80vw] ms-4" />
     </>
  );

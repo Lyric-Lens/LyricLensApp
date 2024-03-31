@@ -1,20 +1,18 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { api } from "../utils/API";
 import Music from "../components/Music";
+import { useMusicPlayer } from "../components/MusicPlayerContext";
 
 export default function Dashboard() {
-  // Determine page: Home, Explore, Collection, Profile
-  const [page, setPage] = useState(new URLSearchParams(window.location.search).get('page'));
-  useEffect(() => {
-    // Set default page
-    if (!page) {
-      window.location.search = '?page=home';
-    }
+  const { currentTrack } = useMusicPlayer();
 
+  // Determine page: Home, Explore, Collection, Profile
+  const [page, setPage] = useState('home');
+  useEffect(() => {
     // Redirect on invalid page
     const routes = ['home', 'explore', 'collection', 'profile', 'search'];
     if (!routes.includes(page)) {
-      window.location.search = '?page=home';
+      setPage('home');
     }
   }, [page]);
 
@@ -37,20 +35,11 @@ export default function Dashboard() {
   // Search
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const searchExecuted = useRef(false);
   useEffect(() => {
     if (search !== '') {
-      window.location.search = `?page=search&search=${search}`
-    }
-  }, [search])
-  useEffect(() => {
-    if (searchExecuted.current) return;
-    searchExecuted.current = true;
-
-    let searchParams = new URLSearchParams(window.location.search).get('search');
-    if (searchParams !== null) {
+      setPage('search');
       api.post('/searchMusic', {
-        search: searchParams
+        search: search
       }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -64,7 +53,7 @@ export default function Dashboard() {
         alert(err.response.data.message);
       })
     }
-  }, [])
+  }, [search])
   function searchMusic(event) {
     event.preventDefault();
 
@@ -187,25 +176,45 @@ export default function Dashboard() {
         )}
       </div>
 
+      <iframe
+        id='music-player'
+        className="hidden"
+        width="560"
+        height="315"
+        src={`https://www.youtube.com/embed/${currentTrack}?enablejsapi=1`}
+        title="Music player"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerPolicy="strict-origin-when-cross-origin"
+        allowFullScreen
+        onLoad={() => {
+          document.getElementById('music-player').contentWindow.postMessage(JSON.stringify({
+            event: 'command',
+            func: 'playVideo',
+            args: [],
+          }), '*');
+        }}
+        key={currentTrack}
+      />
+
       {/* Bottom navbar */}
       <div className="flex justify-between items-center px-4 fixed bottom-0 w-screen h-[70px] bg-[#111] border-t border-[#6C757D]">
 
-        <div onClick={function() {window.location.search = `?page=home`}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
+        <div onClick={function() {setPage('home')}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
           <img src={page === 'home' ? "HomeActive.svg" : "Home.svg"} alt="Home Page" className="w-[24px] h-[24px]" />
           <p style={{fontWeight: '200', fontSize: 'smaller'}} className={`${page === 'home' ? '' : 'opacity-50'}`}>Home</p>
         </div>
 
-        <div onClick={function() {window.location.search = `?page=explore`}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
+        <div onClick={function() {setPage('explore')}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
           <img src={page === 'explore' ? "ExploreActive.svg" : "Explore.svg"} alt="Explore Page" className="w-[24px] h-[24px]" />
           <p style={{fontWeight: '200', fontSize: 'smaller'}} className={`${page === 'explore' ? '' : 'opacity-50'}`}>Explore</p>
         </div>
 
-        <div onClick={function() {window.location.search = `?page=collection`}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
+        <div onClick={function() {setPage('collection')}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
           <img src={page === 'collection' ? "CollectionActive.svg" : "Collection.svg"} alt="Collection Page" className="w-[24px] h-[24px]" />
           <p style={{fontWeight: '200', fontSize: 'smaller'}} className={`${page === 'collection' ? '' : 'opacity-50'}`}>Collection</p>
         </div>
 
-        <div onClick={function() {window.location.search = `?page=profile`}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
+        <div onClick={function() {setPage('profile')}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
           <img src={photo || "UserPlaceholder.svg"} alt="Profile Page" className={`${page === 'profile' ? '' : 'opacity-50'} w-[24px] h-[24px]`} />
           <p style={{fontWeight: '200', fontSize: 'smaller'}} className={`${page === 'profile' ? '' : 'opacity-50'}`}>Profile</p>
         </div>

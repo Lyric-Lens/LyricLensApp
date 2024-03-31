@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 
 const MusicPlayerContext = createContext();
@@ -9,26 +9,17 @@ export const useMusicPlayer = () => useContext(MusicPlayerContext);
 export const MusicPlayerProvider = ({ children }) => {
  const [currentTrack, setCurrentTrack] = useState(null);
 
- // Load the current track from localStorage when the component mounts
- useEffect(() => {
-    const storedTrack = localStorage.getItem('currentTrack');
-    if (storedTrack) {
-      setCurrentTrack(storedTrack);
-      startTrack(storedTrack);
-    }
- }, []);
-
  const playTrack = (trackId) => {
+    localStorage.setItem('currentTrack', trackId);
     if (currentTrack) {
       stopTrack(currentTrack);
     }
     setCurrentTrack(trackId);
-    localStorage.setItem('currentTrack', trackId);
     startTrack(trackId);
  };
 
- const stopTrack = (trackId) => {
-    const iframe = document.getElementById(`youtube-player-${trackId}`);
+ const stopTrack = () => {
+    const iframe = document.getElementById(`music-player`);
     if (iframe) {
       iframe.contentWindow.postMessage(JSON.stringify({
         event: 'command',
@@ -38,8 +29,8 @@ export const MusicPlayerProvider = ({ children }) => {
     }
  };
 
- const startTrack = (trackId) => {
-    const iframe = document.getElementById(`youtube-player-${trackId}`);
+ const startTrack = () => {
+    const iframe = document.getElementById(`music-player`);
     if (iframe) {
       iframe.contentWindow.postMessage(JSON.stringify({
         event: 'command',
