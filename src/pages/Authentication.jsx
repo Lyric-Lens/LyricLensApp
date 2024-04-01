@@ -1,5 +1,6 @@
+import { getAuth, GoogleAuthProvider, signInAnonymously, signInWithPopup } from "firebase/auth";
 import { api } from "../utils/API";
-import { loginWithGoogle, loginAnonymously } from "../utils/FirebaseAuth";
+import '../utils/Firebase';
 
 export default function Authentication() {
 
@@ -9,32 +10,75 @@ export default function Authentication() {
 
     const formData = new FormData(event.currentTarget);
     const email = formData.get('email');
+    const username = formData.get('username');
     const password = formData.get('password');
 
     api.post('/authentication', {
       email: email,
+      username: username,
       password: password
     })
-    .then((response) => {
-      localStorage.setItem('userId', response.data.userId);
-      localStorage.setItem('token', response.data.token);
+    .then((res) => {
+      localStorage.setItem('userId', res.data.userId);
+      localStorage.setItem('token', res.data.token);
       location.reload();
     })
-    .catch((error) => {
-      console.log(error);
+    .catch((err) => {
+      console.log(err);
     })
   }
 
   // Login with Google account
-  function GoogleAuthenticate() {
-    const result = loginWithGoogle();
-    console.log(result);
+  async function GoogleAuthenticate() {
+    const auth = getAuth();
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    try {
+      const result = await signInWithPopup(auth, provider);
+
+      api.post('/authentication', {
+        email: result.user.email,
+        username: result.user.displayName,
+        password: result.user.uid
+      })
+      .then((res) => {
+        localStorage.setItem('userId', res.data.userId);
+        localStorage.setItem('token', res.data.token);
+        location.reload();
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+    } catch (err) {
+      console.log(err);
+      return;
+    }
   }
 
   // Login anonymously
-  function AnonymousAuthenticate() {
-    const result = loginAnonymously();
-    console.log(result);
+  async function AnonymousAuthenticate() {
+    const auth = getAuth();
+    try {
+      const result = await signInAnonymously(auth);
+
+      api.post('/authentication', {
+        email: 'unknown',
+        username: 'Guest' + result.user.uid,
+        password: result.user.uid
+      })
+      .then((res) => {
+        localStorage.setItem('userId', res.data.userId);
+        localStorage.setItem('token', res.data.token);
+        location.reload();
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+    }
+    catch (err) {
+      console.log(err);
+      return;
+    }
   }
 
   return (
@@ -53,6 +97,14 @@ export default function Authentication() {
           <label className="input input-bordered flex items-center gap-2 mb-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="#f9f9f9" className="w-4 h-4 opacity-70"><path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" /><path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" /></svg>
             <input required autoComplete="off" type="text" className="grow" name="email" placeholder="Email" />
+          </label>
+
+          {/* Username */}
+          <label className="input input-bordered flex items-center gap-2 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person-fill" viewBox="0 0 16 16">
+              <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+            </svg>
+            <input required autoComplete="off" type="text" className="grow" name="username" placeholder="Username" />
           </label>
 
           {/* Password */}
@@ -82,7 +134,7 @@ export default function Authentication() {
         </button>
 
         {/* Login anonymously */}
-        <button onClick={AnonymousAuthenticate} className="flex justify-center items-center btn text-[#BFBFBF] font-normal hover:cursor-pointer rounded-full bg-transparent border-0">Continue as Guest</button>
+        <button onClick={AnonymousAuthenticate} className="flex justify-center items-center btn text-[#BFBFBF] font-normal hover:cursor-pointer rounded-full bg-transparent border-transparent">Continue as Guest</button>
       </div>
     </>
   )

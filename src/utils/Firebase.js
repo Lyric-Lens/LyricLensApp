@@ -1,7 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth, signInAnonymously, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
@@ -18,28 +17,5 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+// eslint-disable-next-line no-unused-vars
 const analytics = getAnalytics(app);
-
-const auth = getAuth();
-
-export const loginAnonymously = async () => {
-  try {
-    const userCredential = await signInAnonymously(auth);
-    return userCredential;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-};
-
-export const loginWithGoogle = async () => {
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: "select_account" });
-  try {
-    const result = await signInWithPopup(auth, provider);
-    return result;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-};
