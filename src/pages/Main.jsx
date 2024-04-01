@@ -1,18 +1,23 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { api } from "../utils/API";
 import Music from "../components/Music";
 import { useMusicPlayer } from "../components/MusicPlayerContext";
+import ReactPlayer from 'react-player/youtube'
 
-export default function Dashboard() {
+export default function Main() {
   // Music player config
   const { currentTrack } = useMusicPlayer();
   const [musicPlay, setMusicPlay] = useState(true);
+  const [musicPage, setMusicPage] = useState(false);
+  const handleMusicEnd = useCallback(() => {
+    setMusicPlay(false);
+  }, []);
 
-  // Determine page: Home, Explore, Collection, Profile, Search, Music
+  // Determine page: Home, Explore, Collection, Profile, Search
   const [page, setPage] = useState('home');
   useEffect(() => {
     // Redirect on invalid page
-    const routes = ['home', 'explore', 'collection', 'profile', 'search', 'music'];
+    const routes = ['home', 'explore', 'collection', 'profile', 'search'];
     if (!routes.includes(page)) {
       setPage('home');
     }
@@ -145,9 +150,9 @@ export default function Dashboard() {
                 <h3 className="font-bold text-lg">Settings</h3>
                 <form method="dialog">
                   <button className="btn btn-ghost">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
-                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-                  </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
+                      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                    </svg>
                   </button>
                 </form>
               </div>
@@ -181,32 +186,69 @@ export default function Dashboard() {
 
       {/* Current track indicator */}
       {currentTrack && (
-        <div className={`flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
+        <div onClick={()=>{setMusicPage(true)}} className={`flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
+
           <div className="flex items-center">
+
+            {/* Track thumbnail */}
             <div style={{backgroundImage: `url(${localStorage.getItem('currentTrackThumbnail')})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`}></div>
+
             <div className="flex flex-col">
+
+              {/* Track title */}
               <p className="font-bold my-1" title={localStorage.getItem('currentTrackTitle')}>{localStorage.getItem('currentTrackTitle').slice(0, 10) + (localStorage.getItem('currentTrackTitle').length > 10 ? '...' : '')}</p>
+
+              {/* Track author */}
               <p className="text-xs opacity-50 my-1" title={localStorage.getItem('currentTrackAuthor')}>{localStorage.getItem('currentTrackAuthor').slice(0, 10) + (localStorage.getItem('currentTrackAuthor').length > 10 ? '...' : '')}</p>
+
             </div>
+
           </div>
+
           <div className="flex items-center me-8">
+
+            {/* Previous track button */}
             <img src="Previous.svg" alt="Previous button" className="mx-1 w-[16px] h-[16px]" />
-            <img src={`${musicPlay ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-1 w-[32px] h-[32px] rounded-lg" onClick={() => {
-              if (musicPlay === false) {
-                document.getElementById(`music-player`).contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                setMusicPlay(true);
-              } else {
-                document.getElementById(`music-player`).contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                setMusicPlay(false);
-              }
+
+            {/* Play or pause button */}
+            <img src={`${musicPlay ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-1 w-[32px] h-[32px] rounded-lg hover:cursor-pointer" onClick={() => {
+              musicPlay === false ? setMusicPlay(true) : setMusicPlay(false)
             }} />
+
+            {/* Next track button */}
             <img src="Next.svg" alt="Next button" className="mx-1 w-[16px] h-[16px]" />
+
+          </div>
+
+        </div>
+      )}
+
+      {/* Music page */}
+      {musicPage && (
+        <div className="fixed inset-0 z-50" style={{top: 0, left: 0}}>
+          <div className="absolute inset-0 bg-[#111] flex items-center justify-center">
+            <div className="absolute inset-0" style={{zIndex: -1}}></div>
+            <div className="w-screen h-screen">
+
+              {/* Close */}
+              <button className="btn btn-ghost" onClick={() => {setMusicPage(false)}}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="0.5" y="0.5" width="23" height="23" rx="11.5" stroke="#F9F9F9" strokeOpacity="0.5"/>
+                  <path fillRule="evenodd" clipRule="evenodd" d="M17 12C17 11.8821 16.9624 11.7691 16.8954 11.6858C16.8284 11.6024 16.7376 11.5556 16.6429 11.5556H8.21985L10.4676 8.75957C10.5008 8.71825 10.5271 8.6692 10.5451 8.61522C10.563 8.56123 10.5723 8.50337 10.5723 8.44494C10.5723 8.38651 10.563 8.32865 10.5451 8.27467C10.5271 8.22069 10.5008 8.17164 10.4676 8.13032C10.4344 8.089 10.3949 8.05623 10.3516 8.03387C10.3082 8.01151 10.2617 8 10.2147 8C10.1678 8 10.1213 8.01151 10.0779 8.03387C10.0345 8.05623 9.99508 8.089 9.96188 8.13032L7.10492 11.6854C7.07166 11.7267 7.04527 11.7757 7.02727 11.8297C7.00927 11.8837 7 11.9415 7 12C7 12.0585 7.00927 12.1163 7.02727 12.1703C7.04527 12.2243 7.07166 12.2733 7.10492 12.3146L9.96188 15.8697C9.99508 15.911 10.0345 15.9438 10.0779 15.9661C10.1213 15.9885 10.1678 16 10.2147 16C10.2617 16 10.3082 15.9885 10.3516 15.9661C10.3949 15.9438 10.4344 15.911 10.4676 15.8697C10.5008 15.8284 10.5271 15.7793 10.5451 15.7253C10.563 15.6713 10.5723 15.6135 10.5723 15.5551C10.5723 15.4966 10.563 15.4388 10.5451 15.3848C10.5271 15.3308 10.5008 15.2818 10.4676 15.2404L8.21985 12.4444H16.6429C16.7376 12.4444 16.8284 12.3976 16.8954 12.3142C16.9624 12.2309 17 12.1179 17 12Z" fill="#F9F9F9"/>
+                </svg>
+              </button>
+
+              {/* Music info */}
+              {/* TODO: */}
+            </div>
           </div>
         </div>
       )}
 
       {/* Music player */}
-      <iframe
+      <ReactPlayer id='music-player' controls onEnded={handleMusicEnd} playing={musicPlay} className="hidden" url={`https://www.youtube.com/watch?v=${currentTrack}`} />
+
+      {/* <iframe
         id='music-player'
         className="hidden"
         width="560"
@@ -226,7 +268,7 @@ export default function Dashboard() {
           }
         }}
         key={currentTrack}
-      />
+      /> */}
 
       {/* Bottom navbar */}
       <div className="flex justify-between items-center px-4 fixed bottom-0 w-screen h-[70px] bg-[#111] border-t border-[#6C757D]">

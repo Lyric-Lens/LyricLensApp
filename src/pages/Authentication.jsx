@@ -88,7 +88,7 @@ export default function Authentication() {
         <img id="logo" src="Logo.svg" alt="LyricLens Logo" className={`w-[180px] h-[180px]`} />
 
         {/* Decoration */}
-        <img src="Headphone.svg" alt="A headphone placed in the middle of the page, as a decoration" id="logo" className="w-[120px] h-[120px] my-12" />
+        {/* <img src="Headphone.svg" alt="A headphone placed in the middle of the page, as a decoration" id="logo" className="w-[120px] h-[120px] my-12" /> */}
 
         {/* Login Form */}
         <form onSubmit={EPAuthenticate} autoComplete="off" className="flex flex-col justify-center items-center">
