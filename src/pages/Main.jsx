@@ -6,13 +6,13 @@ import { useMusicPlayer } from "../components/MusicPlayerContext";
 export default function Dashboard() {
   // Music player config
   const { currentTrack } = useMusicPlayer();
-  const [musicPlay, setMusicPlay] = useState(false);
+  const [musicPlay, setMusicPlay] = useState(true);
 
-  // Determine page: Home, Explore, Collection, Profile
+  // Determine page: Home, Explore, Collection, Profile, Search, Music
   const [page, setPage] = useState('home');
   useEffect(() => {
     // Redirect on invalid page
-    const routes = ['home', 'explore', 'collection', 'profile', 'search'];
+    const routes = ['home', 'explore', 'collection', 'profile', 'search', 'music'];
     if (!routes.includes(page)) {
       setPage('home');
     }

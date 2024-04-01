@@ -3,7 +3,7 @@ import './App.css';
 
 import Landing from './pages/Landing'
 import Authentication from './pages/Authentication';
-import Dashboard from './pages/Dashboard';
+import Main from './pages/Main';
 import Guard from './utils/Guard';
 
 export default function App() {
@@ -14,7 +14,7 @@ export default function App() {
         <Routes>
           <Route path="/" Component={Landing} />
           <Route path="/authentication" Component={Authentication} />
-          <Route path="/dashboard" Component={Dashboard} />
+          <Route path="/main" Component={Main} />
         </Routes>
       </Router>
     </>

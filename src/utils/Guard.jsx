@@ -44,7 +44,7 @@ export default function Guard() {
     if (auth === false && !publicRoutes.includes(path)) {
       window.location.pathname = ('/authentication');
     } else if (auth === true && publicRoutes.includes(path)) {
-      window.location.pathname = ('/dashboard');
+      window.location.pathname = ('/main');
     }
   }, [auth]);
 
