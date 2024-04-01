@@ -25,25 +25,9 @@ export const MusicPlayerProvider = ({ children }) => {
 
  const stopTrack = () => {
   setCurrentTrack(null);
-  const iframe = document.getElementById(`music-player`);
-  if (iframe) {
-    iframe.contentWindow.postMessage(JSON.stringify({
-      event: 'command',
-      func: 'stopVideo',
-      args: [],
-    }), '*');
-  }
  };
 
  const startTrack = () => {
-  const iframe = document.getElementById(`music-player`);
-  if (iframe) {
-    iframe.contentWindow.postMessage(JSON.stringify({
-      event: 'command',
-      func: 'playVideo',
-      args: [],
-    }), '*');
-  }
  };
 
  return (
