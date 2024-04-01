@@ -3,6 +3,7 @@ import { api } from "../utils/API";
 import Music from "../components/Music";
 import { useMusicPlayer } from "../components/MusicPlayerContext";
 import ReactPlayer from 'react-player/youtube'
+import DurationFormatting from "../components/DurationFormatting";
 
 export default function Main() {
   // Determine page: Home, Explore, Collection, Profile, Search
@@ -30,7 +31,7 @@ export default function Main() {
   useEffect(() => {
     const interval = setInterval(() => {
       setDurationValue(Math.round(musicPlayer.current.getCurrentTime()));
-    }, 100);
+    }, 1);
     return () => clearInterval(interval);
   }, [musicPlayer]);
 
@@ -199,7 +200,7 @@ export default function Main() {
       {currentTrack && (
         <div className={`flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
 
-          <div onClick={()=>{setMusicPage(true)}} className="flex items-center">
+          <div onClick={()=>{setMusicPage(true)}} className="hover:cursor-pointer flex items-center flex-grow">
 
             {/* Track thumbnail */}
             <div style={{backgroundImage: `url(${localStorage.getItem('currentTrackThumbnail')})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`}></div>
@@ -249,20 +250,36 @@ export default function Main() {
                 </svg>
               </button>
 
-              {/* Music info */}
-              <div className="flex flex-col justify-between items-center text-center h-[80vh]">
+              <div className="flex flex-col justify-around items-center text-center h-[85vh]">
+                {/* Music info */}
                 <div className="flex flex-col justify-center items-center text-center">
                   <img src={localStorage.getItem('currentTrackThumbnail')} alt="Music cover" className="w-[240px] h-[240px] my-8 rounded-lg" />
                   <h2 className="font-bold">{localStorage.getItem('currentTrackTitle')}</h2>
                   <p className="text-sm opacity-50">{localStorage.getItem('currentTrackAuthor')}</p>
                 </div>
+                {/* Music control */}
                 <div className="flex flex-col justify-center items-center text-center">
-                  <p className="text-sm opacity-50">{durationValue} - {maxDuration}</p>
-                  <input type="range" name="duration" id="duration" min={`0`} max={`100`} defaultValue={`0`} onChange={(event) => {
-                    setDurationValue(event.target.value)
-                  }} className="w-[80vw]" />
+                  <p className="text-sm mb-2">{DurationFormatting(durationValue)} - {DurationFormatting(maxDuration)}</p>
+                  <input type="range" name="duration" id="duration" min="0" max={maxDuration} value={durationValue}  onChange={(event) => {
+                    musicPlayer.current.seekTo(event.target.value);
+                    setMusicPlay(true);
+                  }} className="range range-xs [--range-shdw:#f9f9f9] w-[80vw]" />
+                  <hr className="h-[1px] w-screen my-8 opacity-50" />
+                  <div className="flex justify-center items-center">
+                    {/* Previous track button */}
+                    <img src="Previous.svg" alt="Previous button" className="mx-1 w-[24px] h-[24px]" />
+
+                    {/* Play or pause button */}
+                    <img src={`${musicPlay ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-2 w-[48px] h-[48px] rounded-lg hover:cursor-pointer" onClick={() => {
+                      musicPlay === false ? setMusicPlay(true) : setMusicPlay(false)
+                    }} />
+
+                    {/* Next track button */}
+                    <img src="Next.svg" alt="Next button" className="mx-1 w-[24px] h-[24px]" />
+                  </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
