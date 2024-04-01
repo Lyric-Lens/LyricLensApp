@@ -1,18 +1,11 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { api } from "../utils/API";
 import Music from "../components/Music";
 import { useMusicPlayer } from "../components/MusicPlayerContext";
 import ReactPlayer from 'react-player/youtube'
+import DurationFormatting from "../components/DurationFormatting";
 
 export default function Main() {
-  // Music player config
-  const { currentTrack } = useMusicPlayer();
-  const [musicPlay, setMusicPlay] = useState(true);
-  const [musicPage, setMusicPage] = useState(false);
-  const handleMusicEnd = useCallback(() => {
-    setMusicPlay(false);
-  }, []);
-
   // Determine page: Home, Explore, Collection, Profile, Search
   const [page, setPage] = useState('home');
   useEffect(() => {
@@ -22,6 +15,25 @@ export default function Main() {
       setPage('home');
     }
   }, [page]);
+
+  // Music player config
+  const { currentTrack } = useMusicPlayer();
+  const [musicPlay, setMusicPlay] = useState(true);
+  const handleMusicEnd = useCallback(() => {
+    setMusicPlay(false);
+  }, []);
+
+  // Music page config
+  const [musicPage, setMusicPage] = useState(false);
+  const musicPlayer = useRef(null);
+  const [durationValue, setDurationValue] = useState(0);
+  const [maxDuration, setMaxDuration] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDurationValue(Math.round(musicPlayer.current.getCurrentTime()));
+    }, 1);
+    return () => clearInterval(interval);
+  }, [musicPlayer]);
 
   // Get user's photo
   const [photo, setPhoto] = useState(null);
@@ -186,9 +198,9 @@ export default function Main() {
 
       {/* Current track indicator */}
       {currentTrack && (
-        <div onClick={()=>{setMusicPage(true)}} className={`flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
+        <div className={`flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
 
-          <div className="flex items-center">
+          <div onClick={()=>{setMusicPage(true)}} className="hover:cursor-pointer flex items-center flex-grow">
 
             {/* Track thumbnail */}
             <div style={{backgroundImage: `url(${localStorage.getItem('currentTrackThumbnail')})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`}></div>
@@ -228,7 +240,7 @@ export default function Main() {
         <div className="fixed inset-0 z-50" style={{top: 0, left: 0}}>
           <div className="absolute inset-0 bg-[#111] flex items-center justify-center">
             <div className="absolute inset-0" style={{zIndex: -1}}></div>
-            <div className="w-screen h-screen">
+            <div className="w-screen h-screen p-4">
 
               {/* Close */}
               <button className="btn btn-ghost" onClick={() => {setMusicPage(false)}}>
@@ -238,37 +250,57 @@ export default function Main() {
                 </svg>
               </button>
 
-              {/* Music info */}
-              {/* TODO: */}
+              <div className="flex flex-col justify-around items-center text-center h-[85vh]">
+                {/* Music info */}
+                <div className="flex flex-col justify-center items-center text-center">
+                  <img src={localStorage.getItem('currentTrackThumbnail')} alt="Music cover" className="w-[240px] h-[240px] my-8 rounded-lg" />
+                  <h2 className="font-bold">{localStorage.getItem('currentTrackTitle')}</h2>
+                  <p className="text-sm opacity-50">{localStorage.getItem('currentTrackAuthor')}</p>
+                </div>
+                {/* Music control */}
+                <div className="flex flex-col justify-center items-center text-center">
+                  <p className="text-sm mb-2">{DurationFormatting(durationValue)} - {DurationFormatting(maxDuration)}</p>
+                  <input type="range" name="duration" id="duration" min="0" max={maxDuration} value={durationValue}  onChange={(event) => {
+                    musicPlayer.current.seekTo(event.target.value);
+                    setMusicPlay(true);
+                  }} className="range range-xs [--range-shdw:#f9f9f9] w-[80vw]" />
+                  <hr className="h-[1px] w-screen my-8 opacity-50" />
+                  <div className="flex justify-center items-center">
+                    {/* Previous track button */}
+                    <img src="Previous.svg" alt="Previous button" className="mx-1 w-[24px] h-[24px]" />
+
+                    {/* Play or pause button */}
+                    <img src={`${musicPlay ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-2 w-[48px] h-[48px] rounded-lg hover:cursor-pointer" onClick={() => {
+                      musicPlay === false ? setMusicPlay(true) : setMusicPlay(false)
+                    }} />
+
+                    {/* Next track button */}
+                    <img src="Next.svg" alt="Next button" className="mx-1 w-[24px] h-[24px]" />
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
       )}
 
       {/* Music player */}
-      <ReactPlayer id='music-player' controls onEnded={handleMusicEnd} playing={musicPlay} className="hidden" url={`https://www.youtube.com/watch?v=${currentTrack}`} />
-
-      {/* <iframe
+      <ReactPlayer
+        ref={musicPlayer}
         id='music-player'
-        className="hidden"
-        width="560"
-        height="315"
-        src={`https://www.youtube.com/embed/${currentTrack}?enablejsapi=1`}
-        title="Music player"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerPolicy="strict-origin-when-cross-origin"
-        allowFullScreen
-        onLoad={() => {
-          if (musicPlay) {
-            document.getElementById('music-player').contentWindow.postMessage(JSON.stringify({
-              event: 'command',
-              func: 'playVideo',
-              args: [],
-            }), '*');
+        controls
+        onEnded={handleMusicEnd}
+        onReady={() => {
+          if (musicPlayer.current) {
+            const duration = musicPlayer.current.getDuration();
+            setMaxDuration(duration);
           }
         }}
-        key={currentTrack}
-      /> */}
+        playing={musicPlay}
+        className="hidden"
+        url={`https://www.youtube.com/watch?v=${currentTrack}`}
+      />
 
       {/* Bottom navbar */}
       <div className="flex justify-between items-center px-4 fixed bottom-0 w-screen h-[70px] bg-[#111] border-t border-[#6C757D]">
