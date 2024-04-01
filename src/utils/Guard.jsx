@@ -8,12 +8,12 @@ export default function Guard() {
   useEffect(() => {
     if (guardActed.current) return;
 
-    const email = localStorage.getItem('email');
+    const userId = localStorage.getItem('userId');
     const token = localStorage.getItem('token');
-    const isAuthenticated = email !== null && token !== null;
+    const isAuthenticated = userId !== null && token !== null;
 
     if (isAuthenticated) {
-      api.get(`/users/${email}`, {
+      api.get(`/users/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -24,12 +24,12 @@ export default function Guard() {
       .catch((err) => {
         console.log(err);
         setAuth(false);
-        localStorage.removeItem('email');
+        localStorage.removeItem('userId');
         localStorage.removeItem('token');
       });
     } else {
       setAuth(false);
-      localStorage.removeItem('email');
+      localStorage.removeItem('userId');
       localStorage.removeItem('token');
     }
 

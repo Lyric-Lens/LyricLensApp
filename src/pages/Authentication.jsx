@@ -14,7 +14,7 @@ export default function Authentication() {
       password: password
     })
     .then((response) => {
-      localStorage.setItem('email', response.data.email);
+      localStorage.setItem('userId', response.data.userId);
       localStorage.setItem('token', response.data.token);
       location.reload();
     })
