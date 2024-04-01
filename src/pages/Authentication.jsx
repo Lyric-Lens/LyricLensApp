@@ -1,7 +1,9 @@
 import { api } from "../utils/API";
+import { loginWithGoogle, loginAnonymously } from "../utils/FirebaseAuth";
 
 export default function Authentication() {
-  // EPAuthenticate -> Email and Password Authentication
+
+  // Email and password authentication
   function EPAuthenticate(event) {
     event.preventDefault();
 
@@ -21,6 +23,18 @@ export default function Authentication() {
     .catch((error) => {
       console.log(error);
     })
+  }
+
+  // Login with Google account
+  function GoogleAuthenticate() {
+    const result = loginWithGoogle();
+    console.log(result);
+  }
+
+  // Login anonymously
+  function AnonymousAuthenticate() {
+    const result = loginAnonymously();
+    console.log(result);
   }
 
   return (
@@ -50,9 +64,25 @@ export default function Authentication() {
           </label>
 
           {/* Submit -- N.B: If email is registered, user will login. Else user will register. */}
-          <input type="submit" value="Continue" className="btn text-[#f9f9f9] hover:cursor-pointer py-4 px-16 rounded-full bg-transparent border border-[#f9f9f9]" />
+          <input type="submit" value="Continue" className="btn font-normal text-[#f9f9f9] hover:cursor-pointer py-4 px-16 rounded-full bg-transparent border border-[#f9f9f9]" />
 
         </form>
+
+        {/* Separator */}
+        <div className="flex justify-center items-center my-4">
+          <hr className="w-24 bg-[#f9f9f9]" />
+          <p className="text-[#f9f9f9] mx-4">or</p>
+          <hr className="w-24 bg-[#f9f9f9]" />
+        </div>
+
+        {/* Login with Google */}
+        <button onClick={GoogleAuthenticate} className="flex justify-center items-center btn text-[#111] hover:cursor-pointer px-8 -mb-1 rounded-full bg-[#f9f9f9] border-0">
+          <img src="Google.svg" alt="Google icon" className="w-[32px] h-[32px]" />
+          <span className="font-normal">Continue with Google</span>
+        </button>
+
+        {/* Login anonymously */}
+        <button onClick={AnonymousAuthenticate} className="flex justify-center items-center btn text-[#BFBFBF] font-normal hover:cursor-pointer rounded-full bg-transparent border-0">Continue as Guest</button>
       </div>
     </>
   )
