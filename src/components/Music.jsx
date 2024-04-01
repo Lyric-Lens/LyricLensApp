@@ -2,9 +2,9 @@ import { useMusicPlayer } from "./MusicPlayerContext";
 
 export default function Music(val) {
 //  const [iframeLoading, setIframeLoading] = useState(true);
- const { playTrack, currentTrack } = useMusicPlayer(); // Use the context hook
+ const { playTrack, currentTrack } = useMusicPlayer();
 
- const handlePlayPause = () => {
+ function handlePlayPause() {
     if (currentTrack === val.val.youtubeId) {
       // If the current track is playing, pause it
       document.getElementById(`music-player`).contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
@@ -14,10 +14,12 @@ export default function Music(val) {
       if (currentTrack) {
         document.getElementById(`music-player`).contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
       }
+      // Remove the current track
+      playTrack(null);
       // Start playing the new track
       playTrack(val.val.youtubeId, val.val.title, val.val.artists[0].name, val.val.thumbnailUrl);
     }
- };
+ }
 
  return (
     <>

@@ -10,43 +10,46 @@ export const MusicPlayerProvider = ({ children }) => {
  const [currentTrack, setCurrentTrack] = useState(null);
 
  const playTrack = (trackId, title, author, thumbnail) => {
+  if (trackId !== null) {
     localStorage.setItem('currentTrack', trackId);
     localStorage.setItem('currentTrackTitle', title);
     localStorage.setItem('currentTrackAuthor', author);
     localStorage.setItem('currentTrackThumbnail', thumbnail);
-    if (currentTrack) {
-      stopTrack(currentTrack);
-    }
-    setCurrentTrack(trackId);
-    startTrack(trackId);
+  }
+  if (currentTrack) {
+    stopTrack(currentTrack);
+  }
+  setCurrentTrack(trackId);
+  startTrack(trackId);
  };
 
  const stopTrack = () => {
-    const iframe = document.getElementById(`music-player`);
-    if (iframe) {
-      iframe.contentWindow.postMessage(JSON.stringify({
-        event: 'command',
-        func: 'stopVideo',
-        args: [],
-      }), '*');
-    }
+  setCurrentTrack(null);
+  const iframe = document.getElementById(`music-player`);
+  if (iframe) {
+    iframe.contentWindow.postMessage(JSON.stringify({
+      event: 'command',
+      func: 'stopVideo',
+      args: [],
+    }), '*');
+  }
  };
 
  const startTrack = () => {
-    const iframe = document.getElementById(`music-player`);
-    if (iframe) {
-      iframe.contentWindow.postMessage(JSON.stringify({
-        event: 'command',
-        func: 'playVideo',
-        args: [],
-      }), '*');
-    }
+  const iframe = document.getElementById(`music-player`);
+  if (iframe) {
+    iframe.contentWindow.postMessage(JSON.stringify({
+      event: 'command',
+      func: 'playVideo',
+      args: [],
+    }), '*');
+  }
  };
 
  return (
-    <MusicPlayerContext.Provider value={{ playTrack, stopTrack, currentTrack }}>
-      {children}
-    </MusicPlayerContext.Provider>
+  <MusicPlayerContext.Provider value={{ playTrack, stopTrack, currentTrack }}>
+    {children}
+  </MusicPlayerContext.Provider>
  );
 };
 

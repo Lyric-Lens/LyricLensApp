@@ -4,7 +4,9 @@ import Music from "../components/Music";
 import { useMusicPlayer } from "../components/MusicPlayerContext";
 
 export default function Dashboard() {
+  // Music player config
   const { currentTrack } = useMusicPlayer();
+  const [musicPlay, setMusicPlay] = useState(false);
 
   // Determine page: Home, Explore, Collection, Profile
   const [page, setPage] = useState('home');
@@ -178,20 +180,30 @@ export default function Dashboard() {
       </div>
 
       {/* Current track indicator */}
-      <div className={`flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
-        <div className="flex items-center">
-          <div style={{backgroundImage: `url(${localStorage.getItem('currentTrackThumbnail')})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`}></div>
-          <div className="flex flex-col">
-            <p className="font-bold my-1">{localStorage.getItem('currentTrackTitle')}</p>
-            <p className="text-xs opacity-50 my-1">{localStorage.getItem('currentTrackAuthor')}</p>
+      {currentTrack && (
+        <div className={`flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
+          <div className="flex items-center">
+            <div style={{backgroundImage: `url(${localStorage.getItem('currentTrackThumbnail')})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`}></div>
+            <div className="flex flex-col">
+              <p className="font-bold my-1" title={localStorage.getItem('currentTrackTitle')}>{localStorage.getItem('currentTrackTitle').slice(0, 10) + (localStorage.getItem('currentTrackTitle').length > 10 ? '...' : '')}</p>
+              <p className="text-xs opacity-50 my-1" title={localStorage.getItem('currentTrackAuthor')}>{localStorage.getItem('currentTrackAuthor').slice(0, 10) + (localStorage.getItem('currentTrackAuthor').length > 10 ? '...' : '')}</p>
+            </div>
+          </div>
+          <div className="flex items-center me-8">
+            <img src="Previous.svg" alt="Previous button" className="mx-1 w-[16px] h-[16px]" />
+            <img src={`${musicPlay ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-1 w-[32px] h-[32px] rounded-lg" onClick={() => {
+              if (musicPlay === false) {
+                document.getElementById(`music-player`).contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                setMusicPlay(true);
+              } else {
+                document.getElementById(`music-player`).contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                setMusicPlay(false);
+              }
+            }} />
+            <img src="Next.svg" alt="Next button" className="mx-1 w-[16px] h-[16px]" />
           </div>
         </div>
-        <div className="flex items-center me-8">
-          <img src="Previous.svg" alt="Previous button" className="mx-1 w-[16px] h-[16px]" />
-          <img src={`${localStorage.getItem('currentTrack') ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-1 w-[32px] h-[32px] rounded-lg" />
-          <img src="Next.svg" alt="Next button" className="mx-1 w-[16px] h-[16px]" />
-        </div>
-      </div>
+      )}
 
       {/* Music player */}
       <iframe
@@ -205,11 +217,13 @@ export default function Dashboard() {
         referrerPolicy="strict-origin-when-cross-origin"
         allowFullScreen
         onLoad={() => {
-          document.getElementById('music-player').contentWindow.postMessage(JSON.stringify({
-            event: 'command',
-            func: 'playVideo',
-            args: [],
-          }), '*');
+          if (musicPlay) {
+            document.getElementById('music-player').contentWindow.postMessage(JSON.stringify({
+              event: 'command',
+              func: 'playVideo',
+              args: [],
+            }), '*');
+          }
         }}
         key={currentTrack}
       />
