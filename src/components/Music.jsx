@@ -23,8 +23,8 @@ export default function Music(val) {
             {/* <img src={`${currentTrack === val.val.youtubeId ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="w-[24px] h-[24px] rounded-lg" /> */}
           </div>
           <div className="flex flex-col">
-            <p className="font-bold my-1">{val.val.title}</p>
-            <p className="text-xs opacity-50 my-1">{val.val.artists[0].name}</p>
+            <p className="font-bold my-1">{val.val.title.slice(0, 30) + (val.val.title.length > 30 ? '...' : '')}</p>
+            <p className="text-xs opacity-50 my-1">{val.val.artists[0].name.slice(0, 20) + (val.val.artists[0].name.length > 20 ? '...' : '')}</p>
           </div>
         </div>
       </div>
