@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { api } from "../utils/API";
 import { useMusicPlayer } from "../components/MusicPlayerContext";
 import ReactPlayer from 'react-player/youtube'
@@ -10,10 +10,6 @@ import Explore from "./Explore";
 import Collection from "./Collection";
 import Profile from "./Profile";
 
-const MainContext = createContext();
-// eslint-disable-next-line react-refresh/only-export-components
-export const useMainContext = () => useContext(MainContext);
-
 export default function Main() {
   // Determine page: Home, Explore, Collection, Profile, Search
   const [page, setPage] = useState('home');
@@ -24,6 +20,18 @@ export default function Main() {
       setPage('home');
     }
   }, [page]);
+
+  // Remove the track data after refresh
+  const componentMount = useRef(false);
+  useEffect(() => {
+    localStorage.removeItem('currentTrack');
+    localStorage.removeItem('currentTrackAuthor');
+    localStorage.removeItem('currentTrackTitle');
+    localStorage.removeItem('currentTrackThumbnail');
+    localStorage.removeItem('currentTrackLyrics');
+    localStorage.removeItem('currentTrackInterpretation');
+    componentMount.current = true;
+  }, []);
 
   // Search
   const [search, setSearch] = useState('');
@@ -58,38 +66,103 @@ export default function Main() {
   // Music player config
   const { currentTrack } = useMusicPlayer();
   const [musicPlay, setMusicPlay] = useState(true);
-  const [lyrics, setLyrics] = useState('');
   const handleMusicEnd = useCallback(() => {
     setMusicPlay(false);
   }, []);
-  useEffect(() => {
-    api.post(`/lyrics`, {
-      author: localStorage.getItem('currentTrackAuthor'),
-      title: localStorage.getItem('currentTrackTitle')
-    }, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-  }, [currentTrack])
 
   // Music page config
   const [musicPage, setMusicPage] = useState(false);
   const musicPlayer = useRef(null);
   const [durationValue, setDurationValue] = useState(0);
   const [maxDuration, setMaxDuration] = useState(0);
+  const [beforeLyrics, setBeforeLyrics] = useState('');
+  const [displayLyrics, setDisplayLyrics] = useState('');
+  const [upcomingLyrics, setUpcomingLyrics] = useState('');
+  // Lyrics processing
+  useEffect(() => {
+    if (localStorage.getItem('currentTrackLyrics') !== null) {
+      const author = encodeURIComponent(localStorage.getItem('currentTrackAuthor').replace(/[^a-z0-9\s]/gi, '').toLowerCase());
+      const title = encodeURIComponent(localStorage.getItem('currentTrackTitle').replace(/[^a-z0-9\s]/gi, '').toLowerCase());
+      api.get(`/lyrics/${author}/${title}/${localStorage.getItem('currentTrack')}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      .then((res) => {
+        localStorage.setItem('currentTrackLyrics', JSON.stringify(res.data.lyrics));
+        api.post('/lyrics/gemini',
+        {
+          youtubeId: localStorage.getItem('currentTrack'),
+          title: localStorage.getItem('currentTrackTitle'),
+          author: localStorage.getItem('currentTrackAuthor'),
+          thumbnail: localStorage.getItem('currentTrackThumbnail'),
+          lyrics: res.data.lyrics.lyrics,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        .then((res) => {
+          localStorage.setItem('currentTrackInterpretation', res.data.interpretation);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      })
+      .catch(() => {
+        localStorage.setItem('currentTrackLyrics', JSON.stringify({ lyrics: [{ timestamp: 0, lyrics: 'No lyrics found!'}] }));
+        localStorage.setItem('currentTrackInterpretation', 'No lyrics to be interpreted!');
+      })
+    }
+  }, [currentTrack])
+  // Lyrics display and duration
   useEffect(() => {
     const interval = setInterval(() => {
       setDurationValue(Math.round(musicPlayer.current.getCurrentTime()));
+      try {
+        // Process lyrics
+        if (localStorage.getItem('currentTrackLyrics')) {
+          let lyricsJson = JSON.parse(localStorage.getItem('currentTrackLyrics')).lyrics;
+          lyricsJson.forEach((value, index) => {
+            if (value.lyrics === 'No lyrics found!') {
+              setBeforeLyrics('');
+              setDisplayLyrics('No lyrics found!');
+              setUpcomingLyrics('');
+              return;
+            }
+            if (index > 1) {
+              if (value.timestamp === durationValue) {
+                setBeforeLyrics(lyricsJson[index - 1].lyrics);
+                setDisplayLyrics(lyricsJson[index].lyrics);
+                setUpcomingLyrics(lyricsJson[index + 1].lyrics);
+              }
+            } else if (index === 0) {
+              if (value.timestamp === durationValue) {
+                setBeforeLyrics('');
+                setDisplayLyrics(lyricsJson[0].lyrics);
+                setUpcomingLyrics(lyricsJson[1].lyrics);
+              }
+            } else if (index === 1) {
+              if (value.timestamp === durationValue) {
+                setBeforeLyrics(lyricsJson[0].lyrics);
+                setDisplayLyrics(lyricsJson[1].lyrics);
+                setUpcomingLyrics(lyricsJson[2].lyrics);
+              }
+            }
+            // !TOO MUCH LOGIC ABOVE
+          })
+        } else {
+          setBeforeLyrics('');
+          setDisplayLyrics('');
+          setUpcomingLyrics('');
+        }
+      } catch (error) {
+        // Don't do anything, this is just preventing filling console with unnecessary error message
+      }
     }, 1);
     return () => clearInterval(interval);
-  }, [musicPlayer]);
+  }, [musicPlayer, durationValue]);
 
   // Get user's photo
   const [photo, setPhoto] = useState(null);
@@ -117,7 +190,7 @@ export default function Main() {
           {/* Search bar */}
           <label className="input input-bordered flex items-center gap-2 rounded-full">
             <form onSubmit={searchMusic}>
-              <input type="text" className="grow" placeholder="Search" name="search" id="search" />
+              <input type="text" className="grow" placeholder="Search" name="search" id="search" defaultValue={new URLSearchParams(window.location.search).get('search')} />
               <button type="submit">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70"><path fillRule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clipRule="evenodd" /></svg>
               </button>
@@ -182,39 +255,26 @@ export default function Main() {
       {/* Current track indicator */}
       {currentTrack && (
         <div className={`flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
-
           <div onClick={()=>{setMusicPage(true)}} className="hover:cursor-pointer flex items-center flex-grow">
-
             {/* Track thumbnail */}
             <div style={{backgroundImage: `url(${localStorage.getItem('currentTrackThumbnail')})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`}></div>
-
             <div className="flex flex-col">
-
               {/* Track title */}
               <p className="font-bold my-1" title={localStorage.getItem('currentTrackTitle')}>{localStorage.getItem('currentTrackTitle').slice(0, 10) + (localStorage.getItem('currentTrackTitle').length > 10 ? '...' : '')}</p>
-
               {/* Track author */}
               <p className="text-xs opacity-50 my-1" title={localStorage.getItem('currentTrackAuthor')}>{localStorage.getItem('currentTrackAuthor').slice(0, 10) + (localStorage.getItem('currentTrackAuthor').length > 10 ? '...' : '')}</p>
-
             </div>
-
           </div>
-
           <div className="flex items-center me-8">
-
             {/* Previous track button */}
             <img src="Previous.svg" alt="Previous button" className="mx-1 w-[16px] h-[16px]" />
-
             {/* Play or pause button */}
             <img src={`${musicPlay ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-1 w-[32px] h-[32px] rounded-lg hover:cursor-pointer" onClick={() => {
               musicPlay === false ? setMusicPlay(true) : setMusicPlay(false)
             }} />
-
             {/* Next track button */}
             <img src="Next.svg" alt="Next button" className="mx-1 w-[16px] h-[16px]" />
-
           </div>
-
         </div>
       )}
 
@@ -235,19 +295,51 @@ export default function Main() {
               </div>
               {/* Music info */}
               <div className="flex flex-col justify-center items-center h-[50vh] mb-48 overflow-y-scroll">
-                <div className="flex flex-col justify-center items-center">
-                  <img src={localStorage.getItem('currentTrackThumbnail')} alt="Music cover" className="w-[240px] h-[240px] my-8 rounded-lg" />
+                <div className="flex flex-col justify-center items-center text-center">
+                  <img src={localStorage.getItem('currentTrackThumbnail')} alt="Music cover" className="w-[160px] h-[160px] my-8 rounded-lg" />
                   <h2 className="font-bold">{localStorage.getItem('currentTrackTitle')}</h2>
                   <p className="text-sm opacity-50">{localStorage.getItem('currentTrackAuthor')}</p>
                 </div>
                 <br />
-                <div className="flex flex-col justify-center items-center">
-                  <p className="">{lyrics}</p>
+                <div className="flex justify-center items-center text-center">
+                  <div className={`flex justify-center items-center w-[20vw] me-2`}>
+                    <button className="flex justify-center items-center hover:cursor-pointer rounded-full bg-transparent p-2 border border-[#f9f9f9] hover:scale-90 transition duration-300" onClick={() => document.getElementById('interpretationModal').showModal()}>
+                      <img src="Gemini.svg" alt="Gemini icon" className="w-[24px] h-[24px]" />
+                    </button>
+
+                    {/* Interpretation modal */}
+                    <dialog id="interpretationModal" className="modal">
+                      <div className="modal-box">
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-bold text-lg flex items-center"><img src="Gemini.svg" alt="Gemini icon" className="w-[16px] h-[16px] me-1" />Summary</h3>
+                          <form method="dialog">
+                            <button className="btn btn-ghost">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                              </svg>
+                            </button>
+                          </form>
+                        </div>
+                        <div className="py-4">
+                          <p className="text-sm text-justify">{localStorage.getItem('currentTrackInterpretation')}</p>
+                        </div>
+                      </div>
+                    </dialog>
+
+                  </div>
+                  <div className={`flex justify-center items-center text-start w-[60vw]`}>
+                    <div>
+                      {beforeLyrics !== '' ? (<p className={`text-xs opacity-50`}>{beforeLyrics}</p>) : ''}
+                      {displayLyrics !== '' ? (<p className={``}>{displayLyrics}</p>) : ''}
+                      {upcomingLyrics !== '' ? (<p className={`text-xs opacity-50`}>{upcomingLyrics}</p>) : ''}
+                      {/* TODO: add smoother animation to moving lyrics */}
+                    </div>
+                  </div>
                 </div>
               </div>
               {/* Music control */}
               <div className="flex flex-col justify-center items-center text-center fixed bottom-8">
-              <p className="text-sm mb-2">{DurationFormatting(durationValue)} - {DurationFormatting(maxDuration)}</p>
+              <p className="text-sm mb-2">{DurationFormatting(durationValue === maxDuration - 1 ? maxDuration : durationValue)} - {DurationFormatting(maxDuration)}</p>
                 <input type="range" name="duration" id="duration" min="0" max={maxDuration} value={durationValue}  onChange={(event) => {
                   musicPlayer.current.seekTo(event.target.value);
                   setMusicPlay(true);
@@ -288,27 +380,22 @@ export default function Main() {
 
       {/* Bottom navbar */}
       <div className="flex justify-between items-center px-4 fixed bottom-0 w-screen h-[70px] bg-[#111] border-t border-[#6C757D]">
-
         <div onClick={function() {setPage('home')}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
           <img src={page === 'home' ? "HomeActive.svg" : "Home.svg"} alt="Home Page" className="w-[24px] h-[24px]" />
           <p style={{fontWeight: '200', fontSize: 'smaller'}} className={`${page === 'home' ? '' : 'opacity-50'}`}>Home</p>
         </div>
-
         <div onClick={function() {setPage('explore')}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
           <img src={page === 'explore' ? "ExploreActive.svg" : "Explore.svg"} alt="Explore Page" className="w-[24px] h-[24px]" />
           <p style={{fontWeight: '200', fontSize: 'smaller'}} className={`${page === 'explore' ? '' : 'opacity-50'}`}>Explore</p>
         </div>
-
         <div onClick={function() {setPage('collection')}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
           <img src={page === 'collection' ? "CollectionActive.svg" : "Collection.svg"} alt="Collection Page" className="w-[24px] h-[24px]" />
           <p style={{fontWeight: '200', fontSize: 'smaller'}} className={`${page === 'collection' ? '' : 'opacity-50'}`}>Collection</p>
         </div>
-
         <div onClick={function() {setPage('profile')}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
           <img src={photo || "UserPlaceholder.svg"} alt="Profile Page" className={`${page === 'profile' ? '' : 'opacity-50'} w-[24px] h-[24px]`} />
           <p style={{fontWeight: '200', fontSize: 'smaller'}} className={`${page === 'profile' ? '' : 'opacity-50'}`}>Profile</p>
         </div>
-
       </div>
     </>
   )

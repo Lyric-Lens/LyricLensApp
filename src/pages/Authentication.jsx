@@ -64,7 +64,7 @@ export default function Authentication() {
       api.post('/authentication', {
         email: 'unknown',
         username: 'Guest' + result.user.uid,
-        password: result.user.uid
+        password: 'password' // Guest don't need this anyway
       })
       .then((res) => {
         localStorage.setItem('userId', res.data.userId);
