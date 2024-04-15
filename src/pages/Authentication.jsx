@@ -1,8 +1,10 @@
 import { getAuth, GoogleAuthProvider, signInAnonymously, signInWithPopup } from "firebase/auth";
 import { api } from "../utils/API";
 import '../utils/Firebase';
+import { useState } from "react";
 
 export default function Authentication() {
+  const [wrongPassword, setWrongPassword] = useState(false);
 
   // Email and password authentication
   function EPAuthenticate(event) {
@@ -10,12 +12,11 @@ export default function Authentication() {
 
     const formData = new FormData(event.currentTarget);
     const email = formData.get('email');
-    const username = formData.get('username');
     const password = formData.get('password');
 
     api.post('/authentication', {
       email: email,
-      username: username,
+      username: 'New User',
       password: password
     })
     .then((res) => {
@@ -25,6 +26,7 @@ export default function Authentication() {
     })
     .catch((err) => {
       console.log(err);
+      setWrongPassword(true);
     })
   }
 
@@ -48,6 +50,7 @@ export default function Authentication() {
       })
       .catch((err) => {
         console.log(err);
+        setWrongPassword(true);
       })
     } catch (err) {
       console.log(err);
@@ -99,14 +102,6 @@ export default function Authentication() {
             <input required autoComplete="off" type="text" className="grow" name="email" placeholder="Email" />
           </label>
 
-          {/* Username */}
-          <label className="input input-bordered flex items-center gap-2 mb-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person-fill" viewBox="0 0 16 16">
-              <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
-            </svg>
-            <input required autoComplete="off" type="text" className="grow" name="username" placeholder="Username" />
-          </label>
-
           {/* Password */}
           <label className="input input-bordered flex items-center gap-2 mb-8">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-shield-lock-fill">
@@ -114,6 +109,11 @@ export default function Authentication() {
             </svg>
             <input required autoComplete="new-password" type="password" name="password" className="grow" placeholder="Password" />
           </label>
+
+          <div onClick={() => {setWrongPassword(false)}} role="alert" className={`w-[75vw] mb-4 text-start alert alert-error ${wrongPassword ? 'flex' : 'hidden'}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>This email is already registered, wrong password!</span>
+          </div>
 
           {/* Submit -- N.B: If email is registered, user will login. Else user will register. */}
           <input type="submit" value="Continue" className="btn font-normal text-[#f9f9f9] hover:cursor-pointer py-4 px-16 rounded-full bg-transparent border border-[#f9f9f9]" />
