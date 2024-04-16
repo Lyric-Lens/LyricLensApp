@@ -16,6 +16,7 @@ export const MusicPlayerProvider = ({ children }) => {
     localStorage.setItem('currentTrackAuthor', author);
     localStorage.setItem('currentTrackThumbnail', thumbnail);
     localStorage.setItem('currentTrackLyrics', null);
+    localStorage.setItem('addMusicCount', localStorage.getItem('addMusicCount') ? Number(localStorage.getItem('addMusicCount')) + 1 : 1);
   }
   if (currentTrack) {
     stopTrack(currentTrack);
