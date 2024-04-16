@@ -30,6 +30,25 @@ export default function Main() {
   // Remove the track data after refresh
   const componentMount = useRef(false);
   useEffect(() => {
+    if (!localStorage.getItem('history')) {
+      api.get(`/users/${localStorage.getItem('userId')}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      })
+      .then((res) => {
+        if (!res.data.user.history) {
+          localStorage.setItem('history', JSON.stringify([]));
+        } else {
+          localStorage.setItem('history', JSON.stringify(res.data.user.history));
+          location.reload();
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+    }
+
     localStorage.removeItem('currentTrack');
     localStorage.removeItem('currentTrackAuthor');
     localStorage.removeItem('currentTrackTitle');
@@ -150,16 +169,43 @@ export default function Main() {
     }, 1);
     return () => clearInterval(interval);
   }, [musicPlayer, durationValue, lyricsJson]);
-  // Interval: Listening time, update stats
+  // Interval: Listening time, update stats schedule
   useEffect(() => {
     const interval = setInterval(() => {
       if (musicPlay === true && localStorage.getItem('currentTrack')) {
         const currentListeningTime = Number(localStorage.getItem('addListeningTime')) || 0;
         localStorage.setItem('addListeningTime', Math.round(currentListeningTime + 1));
       }
+      if (!localStorage.getItem('updateStatsSchedule')) {
+        localStorage.setItem('updateStatsSchedule', 0);
+      }
+      if (Number(localStorage.getItem('updateStatsSchedule')) <= 60) {
+        localStorage.setItem('updateStatsSchedule', Number(localStorage.getItem('updateStatsSchedule')) + 1);
+      } else {
+        api.post(`/users/${localStorage.getItem('userId')}/stats`, {
+          history: JSON.parse(localStorage.getItem('history')),
+          listeningTime: Number(localStorage.getItem('addListeningTime')),
+          musicCount: Number(localStorage.getItem('addMusicCount')),
+          // TODO: playlistCount: Number(localStorage.getItem('addPlaylistCount')), // add when finished with playlist system
+        }, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        .then(() => {
+          localStorage.setItem('addListeningTime', 0);
+          localStorage.setItem('addMusicCount', 0);
+          // TODO: localStorage.setItem('addPlaylistCount', 0); // add when finished with playlist system
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        localStorage.setItem('updateStatsSchedule', 0);
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [musicPlay]);
+  useEffect(() => {})
   // Scroll to top visibility
   const [visibleScrollTop, setVisibleScrollTop] = useState(false);
   useEffect(() => {
@@ -403,7 +449,7 @@ export default function Main() {
               <dialog id="interpretationModal" className="modal">
                 <div className="modal-box">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-lg flex items-center"><img src="Gemini.svg" alt="Gemini icon" className="w-[16px] h-[16px] me-1" />Summary</h3>
+                    <h3 className="font-bold text-lg flex items-center"><img src="Gemini.svg" alt="Gemini icon" className="w-[16px] h-[16px] me-2" />Summary</h3>
                     <form method="dialog">
                       <button className="btn btn-ghost">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
