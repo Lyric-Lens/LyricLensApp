@@ -8,6 +8,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --fallback-b1: #111;
+        --b1: #111;
+        --fallback-bc: #111;
+        --bc: #f9f9f9;
+      }
       .poppins-regular {
         font-family: "Poppins", sans-serif;
         font-weight: 400;
@@ -16,36 +22,10 @@
       input:-webkit-autofill { 
         -webkit-background-clip: text;
       }
-
-      /* #duration {
-        overflow: visible;
-        width: 80vw;
-        -webkit-appearance: none;
-      }
-      #duration:hover {
-        cursor: pointer;
-      }
-
-      #duration::-webkit-slider-runnable-track {
-        height: 4px;
-        -webkit-appearance: none;
-        background: none;
-      }
-
-      #duration::-webkit-slider-thumb {
-        width: 16px;
-        -webkit-appearance: none;
-        height: 16px;
-        cursor: pointer;
-        border-radius: 50%;
-        background: #f9f9f9;
-        box-shadow: 0 0 0 4px #888C93;
-        margin-top: -8px;
-      } */
     </style>
     <title>LyricLens</title>
   </head>
-  <body class="poppins-regular" style="background-color: #111; color: #f9f9f9; overflow-x: hidden;">
+  <body class="poppins-regular" style="color: #f9f9f9; overflow-x: hidden;">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -88,6 +88,7 @@ export default function Main() {
   const [durationValue, setDurationValue] = useState(0);
   const [maxDuration, setMaxDuration] = useState(0);
   const [lyricsJson, setLyricsJson] = useState([]);
+  const [displayLyric, setDisplayLyric] = useState(false);
   // Lyrics processing
   useEffect(() => {
     if (localStorage.getItem('currentTrackLyrics') !== null) {
@@ -126,7 +127,7 @@ export default function Main() {
       })
     }
   }, [currentTrack])
-  // Interval: Lyrics display, duration, stats update
+  // Interval: Lyrics display, duration
   useEffect(() => {
     const interval = setInterval(() => {
       if (!localStorage.getItem('currentTrack')) {
@@ -137,13 +138,19 @@ export default function Main() {
         // Process lyrics
         if (localStorage.getItem('currentTrackLyrics')) {
           setLyricsJson(JSON.parse(localStorage.getItem('currentTrackLyrics')).lyrics)
+          lyricsJson.forEach((lyric, i) => {
+            if (lyric.timestamp === durationValue) {
+              setDisplayLyric(i);
+            }
+          })
         }
       } catch (error) {
         // Don't do anything, this is just preventing filling console with unnecessary error message
       }
     }, 1);
     return () => clearInterval(interval);
-  }, [musicPlayer, durationValue]);
+  }, [musicPlayer, durationValue, lyricsJson]);
+  // Interval: Listening time, update stats
   useEffect(() => {
     const interval = setInterval(() => {
       if (musicPlay === true && localStorage.getItem('currentTrack')) {
@@ -153,6 +160,16 @@ export default function Main() {
     }, 1000);
     return () => clearInterval(interval);
   }, [musicPlay]);
+  // Scroll to top visibility
+  const [visibleScrollTop, setVisibleScrollTop] = useState(false);
+  useEffect(() => {
+    window.addEventListener('scroll', () => {
+      setVisibleScrollTop(scrollY > 500);
+    });
+    return () => window.removeEventListener('scroll', () => {
+      setVisibleScrollTop(scrollY > 500);
+    });
+  }, []);
 
   // Get user's photo
   const [photo, setPhoto] = useState(null);
@@ -172,15 +189,17 @@ export default function Main() {
 
   return (
     <>
-      <div className="bg-[#111] bg-cover bg-no-repeat bg-center w-screen h-screen">
+      <div className="bg-cover bg-no-repeat bg-center w-screen h-screen">
 
         {page !== 'music' && (
           <>
             {/* Header - Search bar and settings */}
             <div className="flex justify-around items-center p-4">
 
+              <img src="Logo.svg" alt="LyricLens logo as the background" className="-z-50 opacity-25 w-[280px] h-[280px] absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: '50%', }} />
+
               {/* Search bar */}
-              <label className="input input-bordered flex items-center gap-2 rounded-full">
+              <label className="input input-bordered flex items-center gap-2 rounded-full bg-[#212529]">
                 <form onSubmit={searchMusic}>
                   <input type="text" className="grow" placeholder="Search" name="search" id="search" defaultValue={new URLSearchParams(window.location.search).get('search')} />
                   <button type="submit">
@@ -293,17 +312,45 @@ export default function Main() {
 
         {page === 'music' && (
           <div className="w-screen p-4 flex flex-col justify-center items-center">
-            <div className="flex justify-start items-center text-center fixed top-0 w-screen p-8 bg-[#111] z-50">
+            <button className={`btn btn-ghost fixed bottom-8 right-4 z-50 ${visibleScrollTop ? 'pointer-events-auto' : 'pointer-events-none opacity-0'} transition duration-300`} onClick={() => { window.scrollTo({top: 0, behavior: 'smooth'}) }}>
+              <img src="ScrollToTop.svg" alt="Scroll to top" className="w-[36px] h-[36px]" />
+            </button>
+            <div className="flex justify-between items-center w-screen px-8 py-4">
               {/* Close */}
               <button className="btn btn-ghost" onClick={() => {setPage(previousPage)}}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
                   <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
                 </svg>
               </button>
+              <div className="dropdown">
+                <div tabIndex={0} role="button" className="btn btn-ghost">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#f9f9f9" className="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                  </svg>
+                </div>
+                <ul tabIndex={0} className="dropdown-content -translate-x-12 bg-[#212529] menu p-2 rounded-md shadow">
+                  <li>
+                    <div className="flex justify-start items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-share-fill" viewBox="0 0 16 16">
+                        <path d="M11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.5 2.5 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5"/>
+                      </svg>
+                      Share
+                    </div>
+                  </li>
+                  <li>
+                    <div className="flex justify-start items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-flag-fill" viewBox="0 0 16 16">
+                        <path d="M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L14.5 8l.186.464-.003.001-.006.003-.023.009a12 12 0 0 1-.397.15c-.264.095-.631.223-1.047.35-.816.252-1.879.523-2.71.523-.847 0-1.548-.28-2.158-.525l-.028-.01C7.68 8.71 7.14 8.5 6.5 8.5c-.7 0-1.638.23-2.437.477A20 20 0 0 0 3 9.342V15.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 1 0v.282c.226-.079.496-.17.79-.26C4.606.272 5.67 0 6.5 0c.84 0 1.524.277 2.121.519l.043.018C9.286.788 9.828 1 10.5 1c.7 0 1.638-.23 2.437-.477a20 20 0 0 0 1.349-.476l.019-.007.004-.002h.001"/>
+                      </svg>
+                      Report
+                    </div>
+                  </li>
+                </ul>
+              </div>
             </div>
             <br />
             {/* Music info */}
-            <div className="flex flex-col justify-center items-center h-[50vh] overflow-y-scroll">
+            <div className="flex flex-col justify-center items-center mb-16">
               <div className="flex flex-col justify-center items-center text-center">
                 <img src={localStorage.getItem('currentTrackThumbnail')} alt="Music cover" className="w-[160px] h-[160px] my-8 rounded-lg" />
                 <div className="flex justify-center items-center text-center flex-wrap w-screen">
@@ -311,39 +358,19 @@ export default function Main() {
                     <h2 className="font-bold">{localStorage.getItem('currentTrackTitle')}</h2>
                     <p className="text-sm opacity-50">{localStorage.getItem('currentTrackAuthor')}</p>
                   </div>
-                  <div className="hidden flex justify-center items-center">
-                    <button className="flex justify-center items-center hover:cursor-pointer rounded-full bg-transparent p-2 border border-[#f9f9f9] hover:scale-90 transition duration-300" onClick={() => document.getElementById('interpretationModal').showModal()}>
-                      <img src="Gemini.svg" alt="Gemini icon" className="w-[24px] h-[24px]" />
-                    </button>
-                    {/* Interpretation modal */}
-                    <dialog id="interpretationModal" className="modal">
-                      <div className="modal-box">
-                        <div className="flex justify-between items-center">
-                          <h3 className="font-bold text-lg flex items-center"><img src="Gemini.svg" alt="Gemini icon" className="w-[16px] h-[16px] me-1" />Summary</h3>
-                          <form method="dialog">
-                            <button className="btn btn-ghost">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
-                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-                              </svg>
-                            </button>
-                          </form>
-                        </div>
-                        <div className="py-4">
-                          <p className="text-sm text-justify">{localStorage.getItem('currentTrackInterpretation')}</p>
-                        </div>
-                      </div>
-                    </dialog>
-                  </div>
                 </div>
               </div>
             </div>
             {/* Music control */}
             <div className="flex flex-col justify-center items-center text-center">
-            <p className="text-sm mb-2">{DurationFormatting(durationValue === maxDuration - 1 ? maxDuration : durationValue)} - {DurationFormatting(maxDuration)}</p>
-              <input type="range" name="duration" id="duration" min="0" max={maxDuration} value={durationValue}  onChange={(event) => {
-                musicPlayer.current.seekTo(event.target.value);
-                setMusicPlay(true);
-              }} className="range range-xs [--range-shdw:#f9f9f9] w-[80vw]" />
+              <p className="text-sm mb-2">{DurationFormatting(durationValue === maxDuration - 1 ? maxDuration : durationValue)} - {DurationFormatting(maxDuration)}</p>
+              <div className="flex justify-center items-center relative">
+                <input type="range" name="duration" id="duration" min="0" max={maxDuration} value={durationValue}  onChange={(event) => {
+                  musicPlayer.current.seekTo(event.target.value);
+                  setMusicPlay(true);
+                }} className="range range-xs [--range-shdw:#f9f9f9] w-[80vw]" />
+                <div className="w-[80vw] h-[1px] border rounded-full absolute opacity-50 pointer-events-none"></div>
+              </div>
               <div className="flex justify-between items-center w-screen px-4 my-4">
                 <div>
                   {/* Loop */}
@@ -355,7 +382,9 @@ export default function Main() {
                   {/* Play or pause button */}
                   <button className="p-0 btn btn-ghost"><img src={`${musicPlay ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-2 w-[48px] h-[48px] rounded-lg hover:cursor-pointer" onClick={() => {
                     musicPlay === false ? setMusicPlay(true) : setMusicPlay(false)
-                    durationValue === maxDuration ? localStorage.setItem('addMusicCount', localStorage.getItem('addMusicCount') ? Number(localStorage.getItem('addMusicCount')) + 1 : 1) : null
+                    if (durationValue === maxDuration) {
+                      localStorage.setItem('addMusicCount', localStorage.getItem('addMusicCount') ? Number(localStorage.getItem('addMusicCount')) + 1 : 1);
+                    }
                   }} /></button>
                   {/* Next track button */}
                   <button className="p-0 btn btn-ghost"><img src="Next.svg" alt="Next button" className="mx-1 w-[24px] h-[24px]" /></button>
@@ -365,9 +394,33 @@ export default function Main() {
                 </div>
               </div>
             </div>
+            {/* Summary */}
+            <div className="flex justify-center items-center my-4">
+              <button className="flex justify-center items-center hover:cursor-pointer rounded-full bg-transparent p-4 w-[80vw] bg-gradient-to-b from-[#1969F6] to-[#0152cc] hover:scale-90 transition duration-300" onClick={() => { document.getElementById('interpretationModal').showModal(); }}>
+                <img src="Gemini.svg" alt="Gemini icon" className="w-[24px] h-[24px] me-2" /> Summary
+              </button>
+              {/* Interpretation modal */}
+              <dialog id="interpretationModal" className="modal">
+                <div className="modal-box">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-bold text-lg flex items-center"><img src="Gemini.svg" alt="Gemini icon" className="w-[16px] h-[16px] me-1" />Summary</h3>
+                    <form method="dialog">
+                      <button className="btn btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
+                          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                        </svg>
+                      </button>
+                    </form>
+                  </div>
+                  <div className="py-4">
+                    <p className="text-sm text-justify">{localStorage.getItem('currentTrackInterpretation')}</p>
+                  </div>
+                </div>
+              </dialog>
+            </div>
             {/* Lyrics */}
             <div className="flex justify-center items-center text-center bg-gradient-to-b from-[#1969F6] to-[#144082] m-4 p-2 rounded-[10px]">
-              <table className="table">
+              <table className="table w-[80vw]">
                 <thead className="border-b">
                   <tr className="border-0">
                     <th className="text-start text-[#f9f9f9] opacity-75">Lyrics</th>
@@ -379,7 +432,7 @@ export default function Main() {
                     if (val.lyrics !== "") {
                       return (
                         <tr className="border-0" key={i}>
-                          <td className="text-start">{val.lyrics}</td>
+                          <td className={`text-start text-[#f9f9f9] ${i === displayLyric ? 'scale-110' : ''} transition duration-300`}>{i === displayLyric ? <b>{val.lyrics}</b> : val.lyrics}</td>
                           <td className="text-end">{DurationFormatting(val.timestamp)}</td>
                         </tr>
                       )
