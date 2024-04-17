@@ -1,13 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { api } from "./API";
 
 export default function Guard() {
   const [auth, setAuth] = useState(null);
-  const guardActed = useRef(false);
 
   useEffect(() => {
-    if (guardActed.current) return;
-
     const userId = localStorage.getItem('userId');
     const token = localStorage.getItem('token');
     const isAuthenticated = userId !== null && token !== null;
@@ -32,8 +29,6 @@ export default function Guard() {
       localStorage.removeItem('userId');
       localStorage.removeItem('token');
     }
-
-    guardActed.current = true;
   }, []);
 
   useEffect(() => {
