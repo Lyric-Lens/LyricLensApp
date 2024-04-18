@@ -237,75 +237,77 @@ export default function Main() {
   return (
     <>
       <div className="bg-cover bg-no-repeat bg-center w-screen h-screen">
-
         {page !== 'music' && (
           <>
-            {/* Header - Search bar and settings */}
-            <div className="flex justify-around items-center p-4">
+            {page !== 'profile' && (
+              <>
+                {/* Header - Search bar and settings */}
+                <div className="flex justify-around items-center p-4">
 
-              <img src="Logo.svg" alt="LyricLens logo as the background" className="-z-50 opacity-25 w-[280px] h-[280px] absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: '50%', }} />
+                  <img src="Logo.svg" alt="LyricLens logo as the background" className="-z-50 opacity-25 w-[280px] h-[280px] absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: '50%', }} />
 
-              {/* Search bar */}
-              <label className="input input-bordered flex items-center gap-2 rounded-full bg-[#212529]">
-                <form onSubmit={searchMusic}>
-                  <input type="text" className="grow" placeholder="Search" name="search" id="search" defaultValue={new URLSearchParams(window.location.search).get('search')} />
-                  <button type="submit">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70"><path fillRule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clipRule="evenodd" /></svg>
-                  </button>
-                </form>
-              </label>
+                  {/* Search bar */}
+                  <label className="input input-bordered flex items-center gap-2 rounded-full bg-[#212529]">
+                    <form onSubmit={searchMusic}>
+                      <input type="text" className="grow" placeholder="Search" name="search" id="search" defaultValue={new URLSearchParams(window.location.search).get('search')} />
+                      <button type="submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70"><path fillRule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clipRule="evenodd" /></svg>
+                      </button>
+                    </form>
+                  </label>
 
-              {/* Settings */}
-              <img src="Settings.svg" alt="Settings button" className="btn btn-ghost w-[56px] h-[56px]" onClick={()=>document.getElementById('settingsModal').showModal()} />
+                  {/* Settings */}
+                  <img src="Settings.svg" alt="Settings button" className="btn btn-ghost w-[56px] h-[56px]" onClick={()=>document.getElementById('settingsModal').showModal()} />
 
-            </div>
-
-            {/* Settings dialog */}
-            <dialog id="settingsModal" className="modal">
-              <div className="modal-box">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-lg">Settings</h3>
-                  <form method="dialog">
-                    <button className="btn btn-ghost">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
-                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-                      </svg>
-                    </button>
-                  </form>
                 </div>
-                <div className="py-4">
-                  {/* Logout */}
-                  <p onClick={function() { localStorage.removeItem('email'); localStorage.removeItem('token'); location.reload(); }} className="text-red-400">Log out</p>
-                </div>
-              </div>
-            </dialog>
 
-            {/* Current track indicator */}
-            {currentTrack && (
-              <div className={`z-50 flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
-                <div onClick={()=>{setPage('music')}} className="hover:cursor-pointer flex items-center flex-grow">
-                  {/* Track thumbnail */}
-                  <div style={{backgroundImage: `url(${localStorage.getItem('currentTrackThumbnail')})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`}></div>
-                  <div className="flex flex-col">
-                    {/* Track title */}
-                    <p className="font-bold my-1" title={localStorage.getItem('currentTrackTitle')}>{localStorage.getItem('currentTrackTitle').slice(0, 10) + (localStorage.getItem('currentTrackTitle').length > 10 ? '...' : '')}</p>
-                    {/* Track author */}
-                    <p className="text-xs opacity-50 my-1" title={localStorage.getItem('currentTrackAuthor')}>{localStorage.getItem('currentTrackAuthor').slice(0, 10) + (localStorage.getItem('currentTrackAuthor').length > 10 ? '...' : '')}</p>
+                {/* Settings dialog */}
+                <dialog id="settingsModal" className="modal">
+                  <div className="modal-box">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-lg">Settings</h3>
+                      <form method="dialog">
+                        <button className="btn btn-ghost">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f9f9f9" className="bi bi-x" viewBox="0 0 16 16">
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                          </svg>
+                        </button>
+                      </form>
+                    </div>
+                    <div className="py-4">
+                      {/* Logout */}
+                      <p onClick={function() { localStorage.removeItem('email'); localStorage.removeItem('token'); location.reload(); }} className="text-red-400">Log out</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center me-8">
-                  {/* Previous track button */}
-                  <img src="Previous.svg" alt="Previous button" className="mx-1 w-[16px] h-[16px]" />
-                  {/* Play or pause button */}
-                  <img src={`${musicPlay ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-1 w-[32px] h-[32px] rounded-lg hover:cursor-pointer" onClick={() => {
-                    musicPlay === false ? setMusicPlay(true) : setMusicPlay(false)
-                  }} />
-                  {/* Next track button */}
-                  <img src="Next.svg" alt="Next button" className="mx-1 w-[16px] h-[16px]" />
-                </div>
-              </div>
-            )}
+                </dialog>
 
+                {/* Current track indicator */}
+                {currentTrack && (
+                  <div className={`z-50 flex justify-between items-center fixed bottom-20 bg-[#212529] w-[95vw] mx-2 rounded-lg`}>
+                    <div onClick={()=>{setPage('music')}} className="hover:cursor-pointer flex items-center flex-grow">
+                      {/* Track thumbnail */}
+                      <div style={{backgroundImage: `url(${localStorage.getItem('currentTrackThumbnail')})`}} className={`w-[48px] h-[48px] rounded-lg m-4 flex justify-center items-center`}></div>
+                      <div className="flex flex-col">
+                        {/* Track title */}
+                        <p className="font-bold my-1" title={localStorage.getItem('currentTrackTitle')}>{localStorage.getItem('currentTrackTitle').slice(0, 10) + (localStorage.getItem('currentTrackTitle').length > 10 ? '...' : '')}</p>
+                        {/* Track author */}
+                        <p className="text-xs opacity-50 my-1" title={localStorage.getItem('currentTrackAuthor')}>{localStorage.getItem('currentTrackAuthor').slice(0, 10) + (localStorage.getItem('currentTrackAuthor').length > 10 ? '...' : '')}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center me-8">
+                      {/* Previous track button */}
+                      <img src="Previous.svg" alt="Previous button" className="mx-1 w-[16px] h-[16px]" />
+                      {/* Play or pause button */}
+                      <img src={`${musicPlay ? 'Pause.svg' : 'Play.svg'}`} alt="Music cover" className="mx-1 w-[32px] h-[32px] rounded-lg hover:cursor-pointer" onClick={() => {
+                        musicPlay === false ? setMusicPlay(true) : setMusicPlay(false)
+                      }} />
+                      {/* Next track button */}
+                      <img src="Next.svg" alt="Next button" className="mx-1 w-[16px] h-[16px]" />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
             {/* Bottom navbar */}
             <div className="flex justify-between items-center px-4 fixed bottom-0 w-screen h-[70px] bg-[#111] border-t border-[#6C757D] z-50">
               <div onClick={function() {setPage('home')}} className="rounded-full btn btn-ghost flex flex-col justify-center items-center">
