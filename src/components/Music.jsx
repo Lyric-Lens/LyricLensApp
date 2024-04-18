@@ -38,8 +38,9 @@ export default function Music(val) {
             <p className="text-xs opacity-50 my-1">{val.val.artists[0].name.slice(0, 20) + (val.val.artists[0].name.length > 20 ? '...' : '')}</p>
           </div>
         </div>
+        <img src="Favoriteblank.svg" className="float-right mt-1 w-[20px] me-8" />
       </div>
-      <hr className="w-[80vw] ms-4" />
+      <hr className="w-[75vw] ms-4" />
     </>
  );
 }
